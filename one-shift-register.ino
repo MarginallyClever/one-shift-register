@@ -2,8 +2,6 @@
 // arduino shift register 8 LED demo
 // dan@marginallyclever.com
 // see also https://www.marginallyclever.com/2017/02/use-74hc959-shift-register/
-// see also https://www.marginallyclever.com/product/74hc959n-shift-register/
-// see also http://www.ti.com/lit/ds/symlink/sn74hc595.pdf
 //---------------------------------------
 
 //---------------------------------------
@@ -24,9 +22,7 @@
 //---------------------------------------
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(57600);
-  
+  // put your setup code here, to run once:  
   pinMode(SER,OUTPUT);
   pinMode(SRCLK,OUTPUT);
   pinMode(SRCLR,OUTPUT);
@@ -39,37 +35,29 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  //lightFirst();
-  //lightAll();
-  //blinkA();
-  //blinkB();
-  //blinkC();
-  //oneAtATime();
-  //pingPong();
-  //pingPongSine();
-  marquee();
+  lightFirst();
+  lightAll();
+  blinkA();
+  blinkB();
+  blinkC();
+  oneAtATime();
+  pingPong();
+  pingPongSine();
+  bouncingLevelA();
+  bouncingLevelB();
+  marqueeA();
+  marqueeB();
 }
 
 void lightFirst() {
+  clearShiftRegisters();
   shiftDataIn(HIGH);
   copyShiftToStorage();
-  while(1);
+  delay(200);
 }
 
 void lightAll() {
   shiftDataIn(HIGH);
-  copyShiftToStorage();
-  delay(200);
-}
-
-void marquee() {
-  shiftDataIn(HIGH);
-  copyShiftToStorage();
-  delay(200);
-  shiftDataIn(LOW);
-  copyShiftToStorage();
-  delay(200);
-  shiftDataIn(LOW);
   copyShiftToStorage();
   delay(200);
 }
@@ -134,22 +122,85 @@ void oneAtATime() {
   turnOutputsOff();
 }
 
-// we can't shift backwards, so this gets a little tricky.
-void pingPong() {
-  int i;
+
+void bouncingLevelA() {
+  int i,j,k;
   
   turnOutputsOn();
+
+  const int NUM_LOOPS = 5;  // repeat the pattern this many times
   
-  for(i=0;i<TOTAL_SHIFT_PINS;++i) {
-    lightOnlyOnePin(i);
-    delay(50);
+  for(k=0;k<NUM_LOOPS;++k) {
+    for(j=0;j<TOTAL_SHIFT_PINS;++j) {  // go up
+      for(i=0;i<TOTAL_SHIFT_PINS;++i) {
+        int data = i<=j ? HIGH : LOW;
+        shiftDataIn(data);
+      }
+      copyShiftToStorage();
+      delay(50);
+    }
+        
+    for(j=TOTAL_SHIFT_PINS-1;j>=0;--j) {  // go down (count backwards)
+      for(i=0;i<TOTAL_SHIFT_PINS;++i) {
+        int data = i<=j ? HIGH : LOW;
+        shiftDataIn(data);
+      }
+      copyShiftToStorage();
+      delay(50);
+    }
   }
+  turnOutputsOff();
+}
+
+
+void bouncingLevelB() {
+  int i,j,k;
   
-  for(i=TOTAL_SHIFT_PINS-1;i>=0;--i) {  // <-- backwards!
-    lightOnlyOnePin(i);
-    delay(50);
+  turnOutputsOn();
+
+  const int NUM_LOOPS = 5;  // repeat the pattern this many times
+  
+  for(k=0;k<NUM_LOOPS;++k) {
+    for(j=0;j<TOTAL_SHIFT_PINS;++j) {  // go up
+      for(i=TOTAL_SHIFT_PINS-1;i>=0;--i) {  // <-- backwards!
+        int data = i<=j ? HIGH : LOW;
+        shiftDataIn(data);
+      }
+      copyShiftToStorage();
+      delay(50);
+    }
+    
+    for(j=TOTAL_SHIFT_PINS-1;j>=0;--j) {  // go down
+      for(i=TOTAL_SHIFT_PINS-1;i>=0;--i) {  // <-- backwards!
+        int data = i<=j ? HIGH : LOW;
+        shiftDataIn(data);
+      }
+      copyShiftToStorage();
+      delay(50);
+    }
   }
-  //delay(500);
+  turnOutputsOff();
+}
+
+// we can't shift backwards, so this gets a little tricky.
+void pingPong() {
+  int i,j;
+  
+  turnOutputsOn();
+
+  const int NUM_LOOPS = 5;  // repeat the pattern this many times
+  
+  for(j=0;j<NUM_LOOPS;++j) {
+    for(i=0;i<TOTAL_SHIFT_PINS;++i) {
+      lightOnlyOnePin(i);
+      delay(50);
+    }
+    
+    for(i=TOTAL_SHIFT_PINS-1;i>=0;--i) {  // <-- backwards!
+      lightOnlyOnePin(i);
+      delay(50);
+    }
+  }
   turnOutputsOff();
 }
 
@@ -161,6 +212,7 @@ void pingPongSine() {
   turnOutputsOn();
 
   const float TIME_TO_BOUNCE = 1.5;  // in seconds
+  const int NUM_LOOPS = 4;  // repeat the pattern this many times
   const float HALF_TOTAL_SHIFT_PINS = TOTAL_SHIFT_PINS/2;
   
   // remember when the animation started
@@ -176,7 +228,7 @@ void pingPongSine() {
     // now we know which pin to light.
     lightOnlyOnePin(i);
     //delay(50);  // pop quiz: why don't we need a delay this time?
-  } while(millis() - b < TIME_TO_BOUNCE * 1000);
+  } while(millis() - b < TIME_TO_BOUNCE * NUM_LOOPS * 1000);
 
   turnOutputsOff();
 }
@@ -185,10 +237,48 @@ void lightOnlyOnePin(int i) {
   int j;
   for(j=0;j<TOTAL_SHIFT_PINS;++j) {
     int data = (i==j? HIGH : LOW);
-    Serial.print(data?'1':'0');
     shiftDataIn(data);
   }
   copyShiftToStorage();
+}
+
+void marqueeA() {
+  clearShiftRegisters();
+  turnOutputsOn();
+  const int NUM_LOOPS = 10;
+  int i;
+  for(i=0;i<NUM_LOOPS;++i) {
+    shiftDataIn(HIGH);
+    copyShiftToStorage();
+    delay(200);
+    shiftDataIn(LOW);
+    copyShiftToStorage();
+    delay(200);
+    shiftDataIn(LOW);
+    copyShiftToStorage();
+    delay(200);
+  }
+  turnOutputsOff();
+}
+
+
+void marqueeB() {
+  clearShiftRegisters();
+  turnOutputsOn();
+  const int NUM_LOOPS = 10;
+  int i;
+  for(i=0;i<NUM_LOOPS;++i) {
+    shiftDataIn(HIGH);
+    copyShiftToStorage();
+    delay(200);
+    shiftDataIn(HIGH);
+    copyShiftToStorage();
+    delay(200);
+    shiftDataIn(LOW);
+    copyShiftToStorage();
+    delay(200);
+  }
+  turnOutputsOff();
 }
 
 
