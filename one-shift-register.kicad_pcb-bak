@@ -3,7 +3,7 @@
   (general
     (links 33)
     (no_connects 0)
-    (area 104.572999 71.392 180.241572 127.594)
+    (area 110.922999 72.949999 179.653001 126.440001)
     (thickness 1.6)
     (drawings 28)
     (tracks 50)
@@ -12,9 +12,13 @@
     (nets 52)
   )
 
-  (page A4)
+  (page USLetter)
   (title_block
-    (date "lun. 30 mars 2015")
+    (title "ELEC-0122 shift register LED demo PCB")
+    (date 2017-02-14)
+    (rev 2)
+    (company Marginallyclever.com)
+    (comment 1 "Dan Royer (dan@marginallyclever.com)")
   )
 
   (layers
